@@ -1,0 +1,119 @@
+# The details of how OSAT submissions are tracked.
+# Uses a directory structure based tracking layout so that 
+# status is tracked in version control along with the 
+# dependency management config files.
+backend: directory
+
+# The path where the directory tracking
+# osat submissions will be located.
+path: "osats"
+
+# The inquirer implementation to use
+# to check on the status of OSATs.
+inquirer:
+  method: "jdbc"
+  url: "jdbc:teradata://biggulp"
+  username: "OSAT_Database_Query"
+  password: "OSAT_Database_Query"
+
+    
+# Validators ensure the validity of OSAT submissions and legal requirements.
+validators:
+# Make sure the version of the in the OSAT submission matches the version of the
+# software on the file system.
+- type: version
+  # These suffixes are ignored when performing the version comparision.  
+  # It is assumed the software version is the last component of the software name.
+  ignoreSuffixes: 
+  - ".Final"
+  - "-Final"
+  - ".RELEASE"
+# Ensure that external dependencies are okay for electronic distribution.
+- type: electronicDistribution
+# Ensure that source is available for external dependencies that require source to be distributed.
+# - type: distributeSource 
+
+
+# The scanners used to determine the software that will be externally distributed.
+externalSoftwareScanners:
+- scannerType: springBootJarScan
+  path:
+  - "build/libs/spark-template-*.jar"
+- scannerType: manualEntry
+  software:
+  - "gradle-2.12"
+
+# The scanners used to determine the software that will only be used internally.
+# These scanner paths can overlap with the externalSoftwareScanners.  Only
+# software that does not appear on the external list will be
+# marked as internal only.
+internalSoftwareScanners:
+- scannerType: directoryScan
+  path:
+  - "build/dependencies/build"
+  extension: ".jar"
+
+# The rules for mapping open source software distributions to OSAT submissions.  
+rules:
+# Ignore our an internally built modules.
+- ruleType: ignorePrefixes
+  prefixes:
+  - "terajdbc"
+  - "tdgss"
+  - "noarch-aster-jdbc-driver"
+  - "common-security"
+  - "common-rest"
+  - "osat-tracker"
+  - "spring-cloud-starter" # Starter projects are just a set of dependencies
+
+- ruleType: groupPrefixes
+  groupName: "slf4j"
+  prefixes:
+  - "slf4j"
+  - "jcl-over-slf4j"
+  - "jul-to-slf4j"
+  - "log4j-over-slf4j"
+  
+- ruleType: groupPrefixes
+  groupName: "jetty"
+  prefixes:
+  - "jetty"
+  - "websocket"
+  - "javax-websocket-client-impl"
+  - "javax-websocket-server-impl"
+  
+# Group libraries of the same version that begin
+# with one of the specified prefixes.
+- ruleType: commonPrefixes
+  prefixes:
+  - "asm"
+  - "aspectj"
+  - "bcp"
+  - "build-info-extractor-gradle"
+  - "build-info"
+  - "hamcrest"
+  - "jackson-core-asl"
+  - "jackson-mapper-asl"
+  - "jackson"
+  - "jersey"
+  - "jetty"
+  - "jffi"
+  - "log4j"
+  - "netty"
+  - "ribbon"
+  - "rxnetty"
+  - "servo"
+  - "spring-boot"
+  - "spring-cloud-commons"
+  - "spring-cloud-consul"
+  - "spring-cloud-netflix"
+  - "spring-cloud-sleuth"
+  - "spring-cloud"
+  - "spring-hateoas"
+  - "spring-plugin"
+  - "spring-security-rsa"
+  - "spring-security"
+  - "springfox"
+  - "spring"
+  - "swagger"
+  - "tomcat"

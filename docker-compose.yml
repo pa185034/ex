@@ -1,0 +1,109 @@
+version: "2"
+services:
+
+  spark-service-template:
+    image: uda/spark-service-template:latest
+    environment:
+      - SERVICE_PORT=6221
+      - CONSUL_ADDR=http://consul:8500/
+      - USER_SERVICE_AUTHENTICATION_URL=http://user:8001/token
+      - AUDIT_SERVICE_MESSAGE_URL=http://audit:9410/audit/messages
+      - SECRET_SERVICE_VAULT_ENABLED=false
+      - HTTP_CORS_ENABLED=true
+      - HTTP_CORS_ALLOWED_ORIGINS=*
+    entrypoint:
+      - java
+      - -Xmx200m
+      - -Djava.security.egd=file:/dev/./urandom
+      - -Dlog4j.configurationFile=/opt/teradata/spark-service-template/log4j2.xml
+      - -Xdebug
+      - -Xrunjdwp:transport=dt_socket,address=8221,suspend=n,server=y
+      - -jar
+      - spark-service-template.jar
+    ports:
+      - "6221:6221"
+      - "8221:8221"
+
+  audit:
+    image: sdvl3prox001.td.teradata.com:7004/uda/audit-service:2.5
+    environment:
+      - SERVICE_PORT=9410
+      - DATASOURCE_JDBC_URL=jdbc:postgresql://udapostgres:5432/udaservices
+      - DATASOURCE_USER=auditservice
+      - DATASOURCE_PASSWORD=auditservice
+      - CONSUL_ADDR=http://consul:8500/
+      - USER_SERVICE_AUTHENTICATION_URL=http://user:8001/token
+      - SECRET_SERVICE_VAULT_ENABLED=false
+      - HTTP_CORS_ENABLED=true
+      - HTTP_CORS_ALLOWED_ORIGINS=*
+    ports:
+      - "9410:9410"
+
+  user:
+    image: sdvl3prox001.td.teradata.com:7004/uda/user-service:2.5
+    environment:
+      - SERVICE_PORT=8001
+      - DATASOURCE_JDBC_URL=jdbc:postgresql://udapostgres:5432/udaservices
+      - DATASOURCE_USER=userservice
+      - DATASOURCE_PASSWORD=userservice
+      - CONSUL_ADDR=http://consul:8500/
+      - AUDIT_SERVICE_MESSAGE_URL=http://audit:9410/audit/messages
+      - USER_SERVICE_AUTHENTICATION_URL=http://user:8001/token
+      - SECRET_SERVICE_VAULT_ENABLED=false
+      - HTTP_CORS_ENABLED=true
+      - HTTP_CORS_ALLOWED_ORIGINS=*
+    ports:
+      - "8001:8001"
+
+  system:
+    image: sdvl3prox001.td.teradata.com:7004/uda/system-service:2.5
+    environment:
+      - SERVICE_PORT=9380
+      - DATASOURCE_JDBC_URL=jdbc:postgresql://udapostgres:5432/udaservices
+      - DATASOURCE_USER=systemservice
+      - DATASOURCE_PASSWORD=systemservice
+      - AUDIT_SERVICE_MESSAGE_URL=http://audit:9410/audit/messages
+      - USER_SERVICE_AUTHENTICATION_URL=http://user:8001/token
+      - SECRET_SERVICE_VAULT_ENABLED=false
+      - SERVICE_DISCOVERY_ENABLED=false
+      - HTTP_CORS_ENABLED=true
+      - HTTP_CORS_ALLOWED_ORIGINS=*
+    ports:
+      - "9380:9380"
+
+  notification:
+    image:  sdvl3prox001.td.teradata.com:7004/uda/notification-service:2.5
+    environment:
+      - SERVICE_PORT=9390
+      - DATASOURCE_JDBC_URL=jdbc:postgresql://udapostgres:5432/udaservices
+      - DATASOURCE_USER=notificationservice
+      - DATASOURCE_PASSWORD=notificationservice
+      - CONSUL_ADDR=http://consul:8500/
+      - AUDIT_SERVICE_MESSAGE_URL=http://audit:9410/audit/messages
+      - USER_SERVICE_AUTHENTICATION_URL=http://user:8001/token
+      - SECRET_SERVICE_VAULT_ENABLED=false
+      - HTTP_CORS_ENABLED=true
+      - HTTP_CORS_ALLOWED_ORIGINS=*
+    ports:
+      - "9390:9390"
+
+  consul:
+    image: consul:1.0.2
+    volumes:
+      - /consul/data
+      - /consul/config
+    environment:
+      - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
+    ports:
+      - "8300:8300"
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:8600"
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+
+  udapostgres:
+    image: sdvl3prox001.td.teradata.com:7001/uda/udapostgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"

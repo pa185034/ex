@@ -1,0 +1,43 @@
+# 
+# Project properties
+#
+projectGroup=ties
+projectName=td-migration-web-server
+projectWordsName=TD Migration Web Server
+projectDescription=Teradata Migration Web Server project
+projectVersion=DEV-SNAPSHOT
+javaSourceCompatibility=1.8
+packagePath=com.teradata.services.shared.template
+
+#
+# Framework properties
+#
+frameworkVersion=DEV-SNAPSHOT
+
+#
+# Dependency Versions
+#
+JacksonVersion=2.8.3
+MetricsVersion=3.2.2
+Log4JVersion=2.5
+SimpleClientVersion=0.0.21
+
+#
+# Docker registry information
+#
+dockerRegistry=sdvl3prox001.td.teradata.com:7001
+dockerUsername=UT186005
+dockerPassword=Feb@2018
+
+#
+# Sonar properties
+#
+systemProp.sonar.host.url=http://sonar.td.teradata.com:9000
+systemProp.sonar.login=runner
+systemProp.sonar.password=$0nAr2011
+
+#
+# Artifactory credentials
+#
+artifactoryUsername=UT186005
+artifactoryPassword=Feb@2018
